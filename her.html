@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Untukmu & Lily of the Valley</title>
+    
+    <!-- Tailwind CSS untuk Styling Cepat & Responsif -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Konfigurasi Tailwind untuk Warna & Font -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        lily: {
+                            50: '#fdf2f8',
+                            100: '#fce7f3',
+                            200: '#fbcfe8',
+                            300: '#f9a8d4',
+                            400: '#f472b6',
+                            500: '#ec4899',
+                            600: '#db2777',
+                            800: '#9d174d',
+                            900: '#831843',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Quicksand', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Icons (Phosphor Icons) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        /* --- CUSTOM CSS --- */
+        
+        /* Smooth Scroll & Parallax Background */
+        body {
+            /* Ganti url ini dengan gambar background lily jika ada, atau biarkan gradient */
+            background-image: url('https://images.unsplash.com/photo-1524312062534-8b64e8c14d9b?q=80&w=2574&auto=format&fit=crop'); 
+            background-attachment: fixed;
+            background-size: cover;
+            background-position: center;
+            overflow-x: hidden;
+        }
+
+        /* Overlay supaya teks terbaca */
+        .bg-overlay {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(5px);
+            transition: background 0.5s ease;
+        }
+        
+        .dark .bg-overlay {
+            background: rgba(17, 24, 39, 0.9);
+        }
+
+        /* Custom Cursor Love */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #db2777;
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #db2777;
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+        
+        /* Trail Love Effect */
+        .heart-trail {
+            position: fixed;
+            pointer-events: none;
+            font-size: 20px;
+            color: #ec4899;
+            animation: fadeUp 1s forwards;
+            z-index: 9998;
+        }
+
+        @keyframes fadeUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-50px) scale(0); opacity: 0; }
+        }
+
+        /* Hide Scrollbar for clean look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #f472b6;
+            border-radius: 10px;
+        }
+
+        /* Page Transitions */
+        .page-section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s ease-out;
+            display: none; /* Hidden by default for SPA logic */
+        }
+        
+        .page-section.active {
+            display: block;
+            animation: fadeIn 0.8s forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Typewriter Cursor */
+        .typing-cursor::after {
+            content: '|';
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* Loader */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #db2777;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="text-gray-800 dark:text-gray-200 transition-colors duration-500">
+
+    <!-- Background Overlay -->
+    <div class="fixed inset-0 bg-overlay -z-10"></div>
+
+    <!-- Custom Cursor Elements -->
+    <div class="cursor-dot hidden md:block"></div>
+    <div class="cursor-outline hidden md:block"></div>
+
+    <!-- AUDIO CONTROLLER (Hidden autoplay helper) -->
+    <audio id="bg-music" loop>
+        <source src="" type="audio/mp3"> <!-- Opsional: Isi jika punya file mp3 sendiri -->
+    </audio>
+
+    <!-- =========================================
+         PAGE 1: PASSWORD & COUNTDOWN
+    ========================================= -->
+    <section id="auth-page" class="h-screen flex flex-col items-center justify-center p-4 z-50 relative">
+        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-8 rounded-2xl shadow-xl max-w-md w-full text-center border border-lily-200 dark:border-gray-700 transition-all duration-300">
+            <div class="mb-6 text-lily-600 text-5xl animate-float">
+                <i class="ph-fill ph-flower-lotus"></i>
+            </div>
+            
+            <!-- Password Section -->
+            <div id="password-section">
+                <h1 class="font-serif text-2xl font-bold mb-2 text-lily-900 dark:text-lily-100">Selamat Datang</h1>
+                <p class="mb-6 text-sm">Masukkan kode akses khusus untukmu.</p>
+                <input type="password" id="pass-input" placeholder="Kode..." class="w-full px-4 py-3 rounded-xl border border-lily-300 focus:outline-none focus:ring-2 focus:ring-lily-400 bg-lily-50 dark:bg-gray-700 dark:border-gray-600 mb-4 text-center tracking-widest text-lg transition-all">
+                <button onclick="checkPassword()" class="w-full bg-lily-500 hover:bg-lily-600 text-white font-bold py-3 rounded-xl transition-all transform hover:scale-105 active:scale-95 shadow-lg shadow-lily-200/50">
+                    Buka Hati
+                </button>
+                <p id="error-msg" class="text-red-500 text-sm mt-3 hidden">Kode salah, coba ingat tanggal spesial?</p>
+            </div>
+
+            <!-- Countdown Section (Hidden Initially) -->
+            <div id="countdown-section" class="hidden">
+                <h2 class="font-serif text-xl font-bold mb-4">Menunggu Waktu Yang Tepat...</h2>
+                <div class="flex justify-center gap-4 text-lily-700 dark:text-lily-300 font-mono text-lg" id="countdown-timer">
+                    <!-- Timer JS will populate this -->
+                    <div class="flex flex-col"><span id="d" class="text-3xl font-bold">00</span><span class="text-xs">Hari</span></div>
+                    <div class="flex flex-col"><span id="h" class="text-3xl font-bold">00</span><span class="text-xs">Jam</span></div>
+                    <div class="flex flex-col"><span id="m" class="text-3xl font-bold">00</span><span class="text-xs">Menit</span></div>
+                    <div class="flex flex-col"><span id="s" class="text-3xl font-bold">00</span><span class="text-xs">Detik</span></div>
+                </div>
+                <p class="mt-6 text-sm italic">"Sabar ya, akan terbuka pada 1 Januari 2026"</p>
+                <button id="enter-btn" onclick="enterSite()" class="hidden mt-6 w-full bg-lily-500 text-white py-2 rounded-xl animate-pulse">
+                    Masuk Sekarang
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================================
+         PAGE 2: MAIN CONTENT (SPA)
+    ========================================= -->
+    <div id="main-app" class="hidden min-h-screen pb-20">
+        
+        <!-- Navbar -->
+        <nav class="fixed top-0 w-full z-40 bg-white/70 dark:bg-gray-900/80 backdrop-blur-md border-b border-lily-100 dark:border-gray-800 transition-all duration-300">
+            <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="font-serif font-bold text-xl text-lily-600 flex items-center gap-2">
+                    <i class="ph-fill ph-plant"></i> Lily
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <!-- Mobile Menu Button -->
+                    <button onclick="toggleMobileMenu()" class="md:hidden text-2xl text-lily-800 dark:text-lily-200">
+                        <i class="ph ph-list"></i>
+                    </button>
+
+                    <!-- Desktop Menu -->
+                    <div class="hidden md:flex items-center gap-6 text-sm font-semibold text-gray-600 dark:text-gray-300">
+                        <button onclick="navigate('home')" class="hover:text-lily-500 transition-colors">Home</button>
+                        <button onclick="navigate('memories')" class="hover:text-lily-500 transition-colors">Kenangan</button>
+                        <button onclick="navigate('timeline')" class="hover:text-lily-500 transition-colors">Perjalanan</button>
+                        <button onclick="navigate('apology')" class="hover:text-lily-500 transition-colors">Pesan</button>
+                        <button onclick="navigate('music')" class="hover:text-lily-500 transition-colors">Spotify</button>
+                    </div>
+
+                    <!-- Dark Mode Toggle -->
+                    <button onclick="toggleTheme()" class="p-2 rounded-full bg-lily-100 dark:bg-gray-700 text-lily-600 dark:text-yellow-300 transition-transform hover:rotate-12">
+                        <i id="theme-icon" class="ph-fill ph-moon"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mobile Menu Dropdown -->
+            <div id="mobile-menu" class="hidden md:hidden bg-white/95 dark:bg-gray-900/95 border-t border-lily-100 absolute w-full left-0 shadow-lg">
+                <div class="flex flex-col p-4 gap-3 font-semibold text-center">
+                    <button onclick="navigate('home'); toggleMobileMenu()" class="py-2 hover:bg-lily-50 rounded-lg">Home</button>
+                    <button onclick="navigate('memories'); toggleMobileMenu()" class="py-2 hover:bg-lily-50 rounded-lg">Kenangan</button>
+                    <button onclick="navigate('timeline'); toggleMobileMenu()" class="py-2 hover:bg-lily-50 rounded-lg">Perjalanan</button>
+                    <button onclick="navigate('apology'); toggleMobileMenu()" class="py-2 hover:bg-lily-50 rounded-lg">Pesan</button>
+                    <button onclick="navigate('music'); toggleMobileMenu()" class="py-2 hover:bg-lily-50 rounded-lg">Musik</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- SECTIONS -->
+        <div class="pt-20 max-w-4xl mx-auto px-4">
+
+            <!-- 1. HOME SECTION -->
+            <section id="home" class="page-section active min-h-[80vh] flex flex-col items-center justify-center text-center">
+                <div class="mb-8 relative group cursor-pointer" onclick="clickVibrate()">
+                    <div class="absolute inset-0 bg-lily-300 rounded-full blur-xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
+                    <!-- Placeholder Foto Utama (Ganti dengan foto kalian yang paling bagus) -->
+                    <img src="1.jpg" onerror="this.src='https://placehold.co/300x300/pink/white?text=Foto+Kita'" alt="Us" class="relative w-48 h-48 md:w-64 md:h-64 object-cover rounded-full border-4 border-white shadow-2xl transform transition duration-500 group-hover:scale-105">
+                </div>
+                
+                <h1 class="font-serif text-4xl md:text-6xl font-bold text-lily-800 dark:text-lily-200 mb-4 animate-float">
+                    Untukmu, Bunga Lily-ku
+                </h1>
+                <p class="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-xl mx-auto leading-relaxed">
+                    "Web ini ku buat untuk mengungkapkan apa yang tak tersampaikan oleh bibir, dan untuk kenangan yang tak ingin ku lupakan."
+                </p>
+                
+                <button onclick="navigate('apology')" class="mt-8 px-8 py-3 bg-lily-500 text-white rounded-full font-bold shadow-lg shadow-lily-500/30 hover:shadow-lily-500/50 hover:bg-lily-600 transition-all transform hover:-translate-y-1">
+                    Baca Pesan Penting <i class="ph-bold ph-envelope-open ml-2"></i>
+                </button>
+            </section>
+
+            <!-- 2. MEMORIES (GALLERY) -->
+            <section id="memories" class="page-section py-10">
+                <div class="text-center mb-10">
+                    <h2 class="font-serif text-3xl font-bold text-lily-700 dark:text-lily-300 mb-2">Galeri Kita</h2>
+                    <div class="h-1 w-20 bg-lily-400 mx-auto rounded-full"></div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <!-- Foto 1-6 -->
+                    <div class="aspect-square group overflow-hidden rounded-2xl cursor-pointer shadow-md hover:shadow-xl transition-all" onclick="openModal('1.jpg')">
+                        <img src="1.jpg" onerror="this.src='https://placehold.co/400x400/ffb6c1/white?text=1.jpg'" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
+                    </div>
+                    <div class="aspect-square group overflow-hidden rounded-2xl cursor-pointer shadow-md hover:shadow-xl transition-all" onclick="openModal('2.png')">
+                        <img src="2.png" onerror="this.src='https://placehold.co/400x400/ffb6c1/white?text=2.jpg'" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
+                    </div>
+                    <div class="aspect-square group overflow-hidden rounded-2xl cursor-pointer shadow-md hover:shadow-xl transition-all" onclick="openModal('3.jpg')">
+                        <img src="3.jpg" onerror="this.src='https://placehold.co/400x400/ffb6c1/white?text=3.jpg'" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
+                    </div>
+                    <div class="aspect-square group overflow-hidden rounded-2xl cursor-pointer shadow-md hover:shadow-xl transition-all" onclick="openModal('4.jpg')">
+                        <img src="4.jpg" onerror="this.src='https://placehold.co/400x400/ffb6c1/white?text=4.jpg'" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
+                    </div>
+                    <div class="aspect-square group overflow-hidden rounded-2xl cursor-pointer shadow-md hover:shadow-xl transition-all" onclick="openModal('5.jpg')">
+                        <img src="5.jpg" onerror="this.src='https://placehold.co/400x400/ffb6c1/white?text=5.jpg'" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
+                    </div>
+                    <div class="aspect-square group overflow-hidden rounded-2xl cursor-pointer shadow-md hover:shadow-xl transition-all" onclick="openModal('6.jpg')">
+                        <img src="6.jpg" onerror="this.src='https://placehold.co/400x400/ffb6c1/white?text=6.jpg'" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
+                    </div>
+                </div>
+
+                <!-- Location Map -->
+                <div class="mt-12 bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-lg">
+                    <h3 class="font-serif text-xl font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-map-pin text-red-500"></i> Tempat Pertama Kita Tertawa</h3>
+                    <div class="w-full h-64 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-600">
+                         <!-- Ganti maps.jpg dengan screenshot map -->
+                         <img src="maps.png" onerror="this.src='https://placehold.co/800x400/e0e0e0/555?text=Peta+Kenangan'" class="w-full h-full object-cover hover:scale-105 transition-transform duration-700">
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. TIMELINE -->
+            <section id="timeline" class="page-section py-10">
+                <div class="text-center mb-10">
+                    <h2 class="font-serif text-3xl font-bold text-lily-700 dark:text-lily-300">Garis Waktu</h2>
+                </div>
+                
+                <div class="relative border-l-4 border-lily-200 dark:border-lily-800 ml-4 md:ml-1/2 space-y-12 pl-8 md:pl-0">
+                    <!-- 2022 -->
+                    <div class="relative md:w-1/2 md:ml-auto md:pl-8 group">
+                        <div class="absolute top-0 -left-[42px] md:-left-[18px] w-8 h-8 bg-lily-500 rounded-full border-4 border-white dark:border-gray-900 shadow-lg"></div>
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md transform group-hover:-translate-y-1 transition-transform">
+                            <span class="text-sm font-bold text-lily-500">2022</span>
+                            <h3 class="font-serif text-xl font-bold mb-2">Pertama Kenal</h3>
+                            <img src="L.jpg" onerror="this.src='https://placehold.co/600x400/pink/white?text=L.jpg'" class="rounded-lg mb-2 w-full object-cover h-40">
+                            <p class="text-sm">Awal dari segalanya. Momen dimana L mulai tertulis.</p>
+                        </div>
+                    </div>
+
+                    <!-- 2023 -->
+                    <div class="relative md:w-1/2 md:mr-auto md:text-right md:pr-8 group">
+                        <div class="absolute top-0 -left-[42px] md:left-auto md:-right-[18px] w-8 h-8 bg-lily-500 rounded-full border-4 border-white dark:border-gray-900 shadow-lg"></div>
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md transform group-hover:-translate-y-1 transition-transform">
+                            <span class="text-sm font-bold text-lily-500">2023</span>
+                            <h3 class="font-serif text-xl font-bold mb-2">Aku Memilihmu</h3>
+                            <div class="flex md:justify-end">
+                                <img src="I.jpg" onerror="this.src='https://placehold.co/600x400/pink/white?text=I.jpg'" class="rounded-lg mb-2 w-full md:w-full object-cover h-40">
+                            </div>
+                            <p class="text-sm">Tahun dimana aku sadar, kamu adalah "I"-ku.</p>
+                        </div>
+                    </div>
+
+                    <!-- 2024 -->
+                    <div class="relative md:w-1/2 md:ml-auto md:pl-8 group">
+                        <div class="absolute top-0 -left-[42px] md:-left-[18px] w-8 h-8 bg-lily-500 rounded-full border-4 border-white dark:border-gray-900 shadow-lg"></div>
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md transform group-hover:-translate-y-1 transition-transform">
+                            <span class="text-sm font-bold text-lily-500">2024</span>
+                            <h3 class="font-serif text-xl font-bold mb-2">Banyak Cerita</h3>
+                            <img src="A.jpg" onerror="this.src='https://placehold.co/600x400/pink/white?text=A.jpg'" class="rounded-lg mb-2 w-full object-cover h-40">
+                            <p class="text-sm">Tahun penuh warna, suka dan duka kita lewati bersama.</p>
+                        </div>
+                    </div>
+
+                     <!-- 2026 -->
+                     <div class="relative md:w-1/2 md:mr-auto md:text-right md:pr-8 group">
+                        <div class="absolute top-0 -left-[42px] md:left-auto md:-right-[18px] w-8 h-8 bg-lily-500 rounded-full border-4 border-white dark:border-gray-900 shadow-lg"></div>
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md transform group-hover:-translate-y-1 transition-transform border-2 border-lily-300">
+                            <span class="text-sm font-bold text-lily-500">Sekarang / 2026</span>
+                            <h3 class="font-serif text-xl font-bold mb-2">Aku Belajar</h3>
+                            <div class="flex md:justify-end">
+                                <img src="M.jpg" onerror="this.src='https://placehold.co/600x400/pink/white?text=M.jpg'" class="rounded-lg mb-2 w-full md:w-full object-cover h-40">
+                            </div>
+                            <p class="text-sm">Menjadi M yang lebih baik, untukmu dan diriku sendiri.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. APOLOGY MESSAGE -->
+            <section id="apology" class="page-section py-10">
+                <div class="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm p-6 md:p-10 rounded-2xl shadow-xl border-t-8 border-lily-400">
+                    <h2 class="font-serif text-3xl font-bold text-center mb-8 text-lily-800 dark:text-lily-200">Surat Kecil Untukmu</h2>
+                    
+                    <div class="prose dark:prose-invert max-w-none font-sans leading-relaxed text-justify">
+                        <!-- Kontainer Teks Typewriter -->
+                        <div id="typewriter-content" class="min-h-[300px] whitespace-pre-wrap text-sm md:text-base typing-cursor"></div>
+                    </div>
+
+                    <div class="mt-8 text-center hidden" id="reset-type-btn">
+                         <button onclick="startTypewriter(true)" class="text-xs text-gray-400 hover:text-lily-500 underline">Ulangi Animasi Teks</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. MUSIC (Spotify) -->
+            <section id="music" class="page-section py-10">
+                <div class="text-center mb-8">
+                    <h2 class="font-serif text-3xl font-bold text-lily-700 dark:text-lily-300">Soundtrack Kita</h2>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Lagu Kita -->
+                    <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-md">
+                        <h3 class="font-bold mb-3 flex items-center gap-2"><i class="ph-fill ph-music-note text-green-500"></i> Lagu Kita</h3>
+                        <iframe style="border-radius:12px" src="https://open.spotify.com/embed/playlist/4fIISWGJnyH3Ii7OIsqm6a?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                    </div>
+
+                    <!-- Lagu Favoritmu -->
+                    <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-md">
+                        <h3 class="font-bold mb-3 flex items-center gap-2"><i class="ph-fill ph-heart text-lily-500"></i> Lagu Favoritmu</h3>
+                        <iframe style="border-radius:12px" src="https://open.spotify.com/embed/playlist/11tnYKVjRY4i6xpluNxuZf?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FOOTER -->
+            <footer class="text-center py-8 mt-12 text-gray-500 text-sm">
+                <p>Dibuat dengan segenap penyesalan dan harapan.</p>
+                <div class="flex justify-center gap-4 mt-2">
+                    <button onclick="navigate('home')" class="hover:text-lily-500">Kembali ke Awal</button>
+                </div>
+            </footer>
+        </div>
+
+        <!-- Back Button (Floating) -->
+        <button id="back-btn" onclick="goBack()" class="hidden fixed bottom-6 left-6 z-50 bg-white/80 dark:bg-gray-800/80 p-4 rounded-full shadow-lg border border-lily-200 text-lily-600 hover:bg-lily-100 transition-all active:scale-95">
+            <i class="ph-bold ph-arrow-left text-xl"></i>
+        </button>
+    </div>
+
+    <!-- MODAL IMAGE ZOOM -->
+    <div id="image-modal" class="fixed inset-0 z-[100] bg-black/90 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <button onclick="closeModal()" class="absolute top-4 right-4 text-white text-4xl hover:text-lily-400">&times;</button>
+        <img id="modal-img" src="" class="max-w-full max-h-[90vh] rounded-lg shadow-2xl transform scale-95 transition-transform duration-300">
+    </div>
+
+    <!-- EXIT POPUP -->
+    <div id="exit-popup" class="fixed inset-0 z-[101] bg-black/50 hidden items-center justify-center backdrop-blur-sm">
+        <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl max-w-sm w-full text-center shadow-2xl transform scale-90 transition-transform">
+            <div class="text-lily-500 text-5xl mb-4"><i class="ph-fill ph-heart"></i></div>
+            <h3 class="font-serif text-2xl font-bold mb-2">Terima Kasih</h3>
+            <p class="text-gray-600 dark:text-gray-300 mb-6">Sudah membaca sampai sini. Semoga hatimu selalu dijaga.</p>
+            <button onclick="closeExitPopup()" class="w-full bg-lily-500 text-white py-2 rounded-xl hover:bg-lily-600">Tutup</button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- DATA ---
+        const PASSWORD = "9913";
+        // Tanggal target: 1 Januari 2026 jam 00:00:00
+        const TARGET_DATE = new Date('2025-01-01T00:00:00').getTime(); 
+
+        const apologyText = `Permohonan Maaf\n\nAku menulis ini dengan penuh kesadaran dan ketenangan.\nBukan karena dorongan sesaat, bukan juga karena ingin terlihat benar, tapi karena aku benar-benar menyadari bahwa selama ini aku telah melakukan banyak kesalahan.\n\nAku sadar, ada sikap, kata-kata, dan caraku memperlakukanmu yang mungkin membuatmu merasa tidak dihargai, tidak dipahami, atau bahkan terluka. Saat itu, mungkin aku merasa biasa saja, tapi sekarang aku mengerti bahwa apa yang ringan bagiku bisa saja berat bagimu. Dan untuk itu, aku bertanggung jawab.\n\nAku tidak menulis ini untuk membela diri atau mencari pembenaran. Aku juga tidak berharap kamu langsung memaafkan atau melupakan semuanya. Aku hanya ingin jujur mengakui bahwa aku salah, dan aku menyesal telah menjadi bagian dari rasa tidak nyaman yang pernah kamu rasakan.\n\nKalau sampai hari ini masih ada perasaan yang kamu simpan karena sikapku di masa lalu, aku memahami itu. Luka tidak selalu hilang hanya karena waktu, dan aku menghargai sepenuhnya proses yang kamu jalani. Aku tidak ingin memaksamu berada di titik yang sama denganku.\n\nYang ingin aku sampaikan hanyalah ini: permintaan maafku datang dari niat yang tulus. Aku belajar dari kesalahan itu, dan aku berusaha menjadi pribadi yang lebih baik, bukan hanya untukmu, tapi juga untuk diriku sendiri ke depannya.\n\nTerima kasih karena pernah hadir, karena pernah berbagi waktu, cerita, dan perasaan. Apa pun yang terjadi setelah ini, aku berharap kamu selalu diberi ketenangan, dijaga hatinya, dan dikelilingi oleh hal-hal baik yang kamu pantas dapatkan.\n\nAku menghargai jika kamu sudah meluangkan waktu membaca sampai sini. Itu saja sudah lebih dari cukup bagiku.\n\n---\n\nUcapan Tahun Baru & Harapanku\n\nSelamat Tahun Baru.\nDi pergantian tahun ini, aku berharap kamu selalu diberi kesehatan, ketenangan, dan kebahagiaan dalam setiap langkah yang kamu jalani. Semoga tahun yang baru membawa hal-hal baik yang mungkin belum sempat kamu dapatkan sebelumnya, dan menggantinya dengan senyum yang lebih sering.\n\nAku berharap kamu dikelilingi oleh orang-orang yang tulus, yang menghargai keberadaanmu, dan yang mampu menjagamu dengan cara yang baik. Semoga setiap usahamu dimudahkan, setiap lelahmu terbalaskan, dan setiap doa yang kamu simpan pelan-pelan menemukan jalannya.\n\nUntuk harapanku sendiri, aku tidak ingin memaksakan apa pun. Aku hanya berharap bisa menjadi pribadi yang lebih dewasa, lebih bijak, dan lebih bertanggung jawab dari sebelumnya. Aku ingin belajar dari kesalahan yang pernah terjadi, agar ke depan aku tidak mengulanginya lagi, kepada siapa pun.\n\nApa pun arah yang akan kamu pilih di tahun ini, aku berharap langkahmu selalu terasa ringan. Jika suatu saat kamu menoleh ke belakang, semoga yang kamu ingat bukan rasa sakit, tapi bahwa pernah ada seseorang yang belajar dan menyesal dengan sungguh-sungguh.\n\nTerima kasih karena sudah meluangkan waktu membaca sampai sini.\nSemoga tahun yang baru ini menjadi awal yang baik untukmu, dengan atau tanpa aku di dalamnya.`;
+
+        // --- STATE & NAVIGATION ---
+        let historyStack = []; // Untuk tombol back custom
+
+        function clickVibrate() {
+            if (navigator.vibrate) navigator.vibrate(50); // Getar ringan 50ms
+        }
+
+        function checkPassword() {
+            const input = document.getElementById('pass-input').value;
+            clickVibrate();
+            if (input === PASSWORD) {
+                document.getElementById('password-section').classList.add('hidden');
+                document.getElementById('countdown-section').classList.remove('hidden');
+                document.getElementById('countdown-section').classList.add('animate-fadeIn');
+                checkTime(); // Cek apakah sudah waktunya
+            } else {
+                document.getElementById('error-msg').classList.remove('hidden');
+                if (navigator.vibrate) navigator.vibrate([100, 50, 100]); // Getar salah
+            }
+        }
+
+        function checkTime() {
+            const now = new Date().getTime();
+            const distance = TARGET_DATE - now;
+
+            if (distance < 0) {
+                // Waktu sudah lewat/sekarang
+                document.getElementById('countdown-timer').innerHTML = '<div class="text-2xl font-bold text-lily-600">Selamat Tahun Baru</div>';
+                document.getElementById('enter-btn').classList.remove('hidden');
+            } else {
+                // Countdown logic
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                document.getElementById('d').innerText = days;
+                document.getElementById('h').innerText = hours;
+                document.getElementById('m').innerText = minutes;
+                document.getElementById('s').innerText = seconds;
+                
+                setTimeout(checkTime, 1000);
+            }
+        }
+
+        function enterSite() {
+            clickVibrate();
+            document.getElementById('auth-page').style.display = 'none';
+            document.getElementById('main-app').classList.remove('hidden');
+            navigate('home');
+            
+            // Coba play musik (browser policy mungkin memblokir auto play tanpa interaksi user sebelumnya)
+            // document.getElementById('bg-music').play().catch(e => console.log("Auto-play blocked"));
+        }
+
+        function navigate(sectionId) {
+            clickVibrate();
+            
+            // Hide all sections
+            const sections = document.querySelectorAll('.page-section');
+            sections.forEach(sec => sec.classList.remove('active'));
+            
+            // Show target
+            const target = document.getElementById(sectionId);
+            if (target) {
+                target.classList.add('active');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                
+                // Manage Custom Back Button
+                if (sectionId !== 'home') {
+                    document.getElementById('back-btn').classList.remove('hidden');
+                } else {
+                    document.getElementById('back-btn').classList.add('hidden');
+                }
+
+                // Special Trigger for Apology
+                if (sectionId === 'apology') {
+                    // Check if empty to avoid restart every time
+                    if(document.getElementById('typewriter-content').innerHTML === "") {
+                         startTypewriter();
+                    }
+                }
+            }
+        }
+
+        function goBack() {
+            clickVibrate();
+            navigate('home'); // Sederhananya kembali ke home
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // --- TYPEWRITER EFFECT ---
+        let i = 0;
+        let speed = 30; // Kecepatan mengetik ms
+        let isTyping = false;
+
+        function startTypewriter(reset = false) {
+            if (isTyping && !reset) return;
+            
+            const container = document.getElementById('typewriter-content');
+            if (reset) {
+                container.innerHTML = "";
+                i = 0;
+            }
+            isTyping = true;
+            document.getElementById('reset-type-btn').classList.add('hidden');
+
+            function type() {
+                if (i < apologyText.length) {
+                    // Handle new lines
+                    if (apologyText.charAt(i) === '\n') {
+                        container.innerHTML += '<br>';
+                    } else {
+                        container.innerHTML += apologyText.charAt(i);
+                    }
+                    i++;
+                    // Auto scroll ke bawah saat mengetik
+                    // container.scrollIntoView({ behavior: "smooth", block: "end" });
+                    setTimeout(type, speed);
+                } else {
+                    isTyping = false;
+                    container.classList.remove('typing-cursor'); // Stop blinking
+                    document.getElementById('reset-type-btn').classList.remove('hidden');
+                    
+                    // Show Exit Popup logic triggers here (optional) or via button
+                    setTimeout(() => {
+                        document.getElementById('exit-popup').style.display = 'flex';
+                    }, 5000); // Muncul 5 detik setelah selesai baca
+                }
+            }
+            type();
+        }
+
+        function closeExitPopup() {
+            document.getElementById('exit-popup').style.display = 'none';
+        }
+
+        // --- DARK MODE ---
+        function toggleTheme() {
+            clickVibrate();
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                icon.classList.remove('ph-sun');
+                icon.classList.add('ph-moon');
+            } else {
+                html.classList.add('dark');
+                icon.classList.remove('ph-moon');
+                icon.classList.add('ph-sun');
+            }
+        }
+
+        // --- MODAL IMAGE ---
+        function openModal(src) {
+            clickVibrate();
+            const modal = document.getElementById('image-modal');
+            const img = document.getElementById('modal-img');
+            
+            img.src = src;
+            modal.classList.remove('hidden');
+            // Small delay for CSS transition
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                img.classList.remove('scale-95');
+                img.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('image-modal');
+            const img = document.getElementById('modal-img');
+            
+            modal.classList.add('opacity-0');
+            img.classList.remove('scale-100');
+            img.classList.add('scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        // --- CUSTOM CURSOR ---
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener("mousemove", function (e) {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            // Dot follows instantly
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            // Outline follows with lag (managed by CSS transition slightly, simplified here)
+            // For better performance, use requestAnimationFrame, but simple style update works for basic
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+            
+            // Create Heart Trail occasionally
+            if (Math.random() < 0.1) { // 10% chance per move event
+                createHeart(posX, posY);
+            }
+        });
+
+        function createHeart(x, y) {
+            const heart = document.createElement('div');
+            heart.classList.add('heart-trail');
+            heart.innerHTML = '❤';
+            heart.style.left = `${x}px`;
+            heart.style.top = `${y}px`;
+            
+            // Randomize slight movement
+            const randomX = (Math.random() - 0.5) * 20;
+            heart.style.setProperty('--tx', `${randomX}px`);
+            
+            document.body.appendChild(heart);
+            
+            setTimeout(() => {
+                heart.remove();
+            }, 1000);
+        }
+
+        // Initialize
+        // Cek mode malam bawaan perangkat
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            toggleTheme();
+        }
+    </script>
+</body>
+</html>
